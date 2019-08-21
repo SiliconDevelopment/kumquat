@@ -1,0 +1,20 @@
+login: &login
+  adapter: mysql2
+  username: root
+  password:
+  host: '127.0.0.1'
+  encoding: utf8
+  port: 3306
+
+development:
+  database: kumquat_dev
+  <<: *login
+
+test:
+  database: kumquat_test
+  <<: *login
+
+# Set the database for railsbench to use
+benchmarking:
+  database: kumquat_dev
+  <<: *login
