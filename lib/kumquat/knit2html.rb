@@ -1,11 +1,12 @@
 class Knit2HTML
 
-  KNITR_OPTIONS       = %w(use_xhtml smartypants mathjax highlight_code base64_images)
+  KNITR_OPTIONS       = %w(smartypants mathjax base64_images)
   KNITR_LIBRARIES     = %w(knitr DBI RPostgres)
 
   def initialize(data = nil, original_path = nil)
     @data = data
     @original_path = original_path
+    @original_dir = Rails.root.join("app", "views", "experiments") #File.dirname(@original_path)
     @compiled_file_name = 'compiled.Rmd'
     
     Kumquat.logger = Logger.new(Rails.root.join('log', "kumquat.log"))
@@ -16,19 +17,22 @@ class Knit2HTML
   def knit
     f = ''
     Dir.mktmpdir('kumquat_') do |tmp_dir|
+      puts "ORIGNAL PATH IS #{@original_path}" 
+      FileUtils.cp_r "#{@original_dir}/R/.", tmp_dir + "/R"
       @file = "#{tmp_dir}/#{@compiled_file_name}"
       File.write(@file, @data)
       r_commands = [
         "setwd('#{tmp_dir}');",
         "#{r_libraries}",
         database_connection(tmp_dir),
-        "knit2html('#{@file}', options=#{knitr_options});"
+        "rmarkdown::render('#{@file}');"
       ].join(' ')
 
       Kumquat.logger.debug "[Kumquat] knitr Rscript: #{shell_command(r_commands)}"
       output = `#{shell_command(r_commands)}`
       Kumquat.logger.debug "[Kumquat] knitr output: #{output}"
       output_file = output[/output file: (.+)/,1].gsub(/\.md/,'.html')
+      output_file = "compiled.html"
       f = File.read(File.join("#{tmp_dir}/#{output_file}"))
     end
     return f
@@ -59,7 +63,7 @@ class Knit2HTML
 
   def knitr_options
     options = KNITR_OPTIONS.map{|o| "'#{o}'"}*', '
-    "c(#{options})"
+    "c(#{options}, 'html=null')"
   end
 
   def shell_command(r)

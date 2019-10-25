@@ -8,8 +8,11 @@ class RmdTemplateHandler
       :virtual_path => template.virtual_path,
       :updated_at => template.updated_at
       }
- 
+      puts details.inspect
       updated_source = template.source
+      puts "identifier"
+      pp template.identifier
+      pp template
       new_template = ActionView::Template.new(updated_source, template.identifier, template.handler, details)
       
       oo = ActionView::Template::Handlers::ERB.call(new_template)
