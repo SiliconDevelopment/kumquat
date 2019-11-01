@@ -10,7 +10,7 @@ class Knit2HTML
     @compiled_file_name = 'compiled.Rmd'
     
     Kumquat.logger = Logger.new(Rails.root.join('log', "kumquat.log"))
-    Kumquat.logger.debug "[Kumquat] file: #{@file}"
+    
    
   end
 
@@ -20,6 +20,8 @@ class Knit2HTML
       puts "ORIGNAL PATH IS #{@original_path}" 
       FileUtils.cp_r "#{@original_dir}/R/.", tmp_dir + "/R"
       @file = "#{tmp_dir}/#{@compiled_file_name}"
+      Kumquat.logger.debug "[Kumquat] file: #{@file}"
+      Kumquat.logger.debug "Running #{@data}"
       File.write(@file, @data)
       r_commands = [
         "setwd('#{tmp_dir}');",
